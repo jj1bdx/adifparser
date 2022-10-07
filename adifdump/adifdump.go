@@ -38,7 +38,7 @@ func main() {
 			if err != io.EOF {
 				fmt.Fprint(os.Stderr, err)
 			}
-			// break
+			break // when io.EOF break the loop!
 		}
 		fmt.Fprintln(writefp, record)
 	}
