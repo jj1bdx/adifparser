@@ -169,3 +169,29 @@ func TestReadRecordWithBlank(t *testing.T) {
 	}
 
 }
+
+func TestReadRecordWithBlank2(t *testing.T) {
+	buf := strings.NewReader("<EOH>\n<NOTES:10>          <eor>")
+	reader := NewADIFReader(buf)
+	if reader == nil {
+		t.Fatal("Invalid reader.")
+	}
+
+	r, err := reader.ReadRecord()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r == nil {
+		t.Fatal("Got nil record.")
+	}
+
+	if v, err := r.GetValue("notes"); err != nil {
+		t.Fatal("Got value:notes error")
+	} else {
+		if v != "          " {
+			t.Fatal("Not matched")
+		}
+	}
+
+}
+
