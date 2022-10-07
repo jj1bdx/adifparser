@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Matir/adifparser"
+	"github.com/jj1bdx/adifparser"
 	"io"
 	"os"
 	"time"

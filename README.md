@@ -17,5 +17,9 @@ license.
 
 ### Bugs ###
 
-Please report bugs on GitHub at https://github.com/Matir/adifparser, and please
+Please report bugs on GitHub at https://github.com/jj1bdx/adifparser, and please
 include an ADIF test case to demonstrate your bug.
+
+### Original repository
+
+https://github.com/Matir/adifparser
