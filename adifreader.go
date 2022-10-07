@@ -141,7 +141,7 @@ func (ardr *baseADIFReader) readChunk() ([]byte, error) {
 
 func (ardr *baseADIFReader) readRecord() ([]byte, error) {
 	eor := []byte("<eor>")
-	buf := bytes.TrimSpace(ardr.excess)
+	buf := ardr.excess
 	ardr.excess = nil
 	for !bContainsCI(buf, eor) {
 		newchunk, err := ardr.readChunk()
@@ -163,7 +163,7 @@ func (ardr *baseADIFReader) readRecord() ([]byte, error) {
 	buf = trimLotwEof(buf)
 	record_end := bIndexCI(buf, eor)
 	ardr.excess = buf[record_end+len(eor):]
-	return buf[:record_end], nil
+	return bytes.Trim(buf[:record_end], "\r\n"), nil
 }
 
 func trimLotwEof(buf []byte) []byte {
