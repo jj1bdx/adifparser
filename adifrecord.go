@@ -70,8 +70,13 @@ func ParseADIFRecord(buf []byte) (*baseADIFRecord, error) {
 			if err != nil {
 				return nil, err
 			}
-			// TODO: accomodate types
-			record.values[data.name] = data.value
+			if data != nil {
+				// TODO: accomodate types
+				record.values[data.name] = data.value
+			} else {
+				// skip if no valid data found in buf
+				buf = buf[len(buf):]
+			}
 		}
 	}
 
@@ -82,11 +87,17 @@ func ParseADIFRecord(buf []byte) (*baseADIFRecord, error) {
 func getNextField(buf []byte) (*fieldData, []byte, error) {
 	data := &fieldData{}
 
+	// Check if valid tag start marker found in buf
+	nextStart := bytes.IndexByte(buf, '<')
+	if nextStart == -1 {
+		return nil, buf, nil
+	}
 	// Extract name
-	start_of_name := tagStartPos(buf) + 1
+	start_of_name := nextStart + 1
 	end_of_name := bytes.IndexByte(buf, ':')
 	end_of_tag := bytes.IndexByte(buf, '>')
-	if end_of_name == -1 || end_of_tag < end_of_name || end_of_name < start_of_name {
+	if end_of_name == -1 ||
+		end_of_tag < end_of_name || end_of_name < start_of_name {
 		return nil, buf, InvalidField
 	}
 	data.name = strings.ToLower(string(buf[start_of_name:end_of_name]))
