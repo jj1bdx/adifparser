@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	// "os"
 	"strconv"
 	"strings"
 )
@@ -98,6 +99,12 @@ func getNextField(buf []byte) (*fieldData, []byte, error) {
 	end_of_tag := bytes.IndexByte(buf, '>')
 	if end_of_name == -1 ||
 		end_of_tag < end_of_name || end_of_name < start_of_name {
+		// fmt.Fprintf(os.Stderr, "InvalidField:\n")
+		// fmt.Fprintf(os.Stderr, "buf: %s\n", string(buf))
+		// fmt.Fprintf(os.Stderr, "values: %d %d %d\n",
+		//    start_of_name, end_of_name, end_of_tag)
+		// fmt.Fprintf(os.Stderr, "values: %c %c %c\n",
+		//    buf[start_of_name], buf[end_of_name], buf[end_of_tag])
 		return nil, buf, InvalidField
 	}
 	data.name = strings.ToLower(string(buf[start_of_name:end_of_name]))
