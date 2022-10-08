@@ -116,6 +116,9 @@ func (ardr *baseADIFReader) readHeader() {
 			eoh_end := bIndexCI(excess, eoh) + len(eoh)
 			excess = excess[eoh_end:]
 			ardr.excess = excess[tagStartPos(excess):]
+		} else if bytes.HasPrefix(bytes.ToLower(chunk), eoh) {
+			eoh_end := bIndexCI(chunk, eoh) + len(eoh)
+			ardr.excess = chunk[eoh_end:]
 		} else {
 			ardr.excess = chunk
 		}
@@ -151,7 +154,7 @@ func (ardr *baseADIFReader) readRecord() ([]byte, error) {
 				buf = trimLotwEof(buf)
 				// Expected, pass it up the chain
 				if len(buf) > 0 {
-					return bytes.TrimSpace(buf), nil
+					return bytes.Trim(buf, "\r\n"), nil
 				}
 				return nil, err
 			}
