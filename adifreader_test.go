@@ -1,6 +1,7 @@
 package adifparser
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 	"os"
@@ -16,7 +17,7 @@ func testHeaderFile(t *testing.T, filename string) {
 	}
 
 	reader := &baseADIFReader{}
-	reader.rdr = f
+	reader.rdr = bufio.NewReader(f)
 	reader.readHeader()
 	if !bytes.HasPrefix(reader.excess, []byte("<mycall")) {
 		t.Fatalf("Excess has %s, expected %s.", string(reader.excess), "<mycall")
@@ -42,7 +43,7 @@ func TestInternalReadRecord(t *testing.T) {
 	}
 
 	reader := &baseADIFReader{}
-	reader.rdr = f
+	reader.rdr = bufio.NewReader(f)
 
 	testStrings := [...]string{
 		"<mycall:6>KF4MDV", "<mycall:6>KG4JEL", "<mycall:4>W1AW"}

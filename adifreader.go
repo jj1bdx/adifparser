@@ -15,8 +15,8 @@ type ADIFReader interface {
 
 // Real implementation of ADIFReader
 type baseADIFReader struct {
-	// Underlying io Reader
-	rdr io.Reader
+	// Underlying bufio Reader
+	rdr *bufio.Reader
 	// Whether or not the header has been read
 	headerRead bool
 	// Version of the adif file
