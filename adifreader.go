@@ -17,6 +17,8 @@ type ADIFReader interface {
 type baseADIFReader struct {
 	// Underlying bufio Reader
 	rdr *bufio.Reader
+	// Whether or not the header is included
+	noHeader bool
 	// Whether or not the header has been read
 	headerRead bool
 	// Version of the adif file
@@ -86,10 +88,19 @@ func NewDedupeADIFReader(r io.Reader) *dedupeADIFReader {
 
 func (ardr *baseADIFReader) init(r io.Reader) {
 	ardr.rdr = bufio.NewReader(r)
-	ardr.headerRead = false
 	// Assumption
 	ardr.version = 2
 	ardr.records = 0
+	// check header
+	filestart, err := ardr.rdr.Peek(1)
+	if err != nil {
+		// TODO: Log the error somewhere
+		return
+	}
+	ardr.noHeader = filestart[0] == '<'
+	// if header does not exist, header can be skipped
+	// and treated as read
+	ardr.headerRead = ardr.noHeader
 }
 
 func (ardr *baseADIFReader) readHeader() {
