@@ -172,7 +172,7 @@ func TestReadRecordWithBlank(t *testing.T) {
 }
 
 func TestReadRecordWithBlank2(t *testing.T) {
-	buf := strings.NewReader("<EOH>\n<NOTES:10>          <eor>")
+	buf := strings.NewReader(" <EOH>\n<NOTES:10>          <eor>")
 	reader := NewADIFReader(buf)
 	if reader == nil {
 		t.Fatal("Invalid reader.")
