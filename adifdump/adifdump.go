@@ -46,4 +46,5 @@ func main() {
 	if writefp != os.Stdout {
 		writefp.Close()
 	}
+	fmt.Fprintf(os.Stderr, "Total records: %d\n", reader.RecordCount())
 }
