@@ -8,6 +8,14 @@ import (
 // No Unicode processing
 // See bytes.ToLower() source code
 func bStrictToLower(s []byte) []byte {
+	hasUpper := false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		hasUpper = hasUpper || ('A' <= c && c <= 'Z')
+	}
+	if !hasUpper {
+		return append([]byte(""), s...)
+	}
 	b := make([]byte, len(s))
 	for i := 0; i < len(s); i++ {
 		c := s[i]
