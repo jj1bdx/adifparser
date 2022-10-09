@@ -40,7 +40,7 @@ func main() {
 			}
 			break // when io.EOF break the loop!
 		}
-		fmt.Fprintln(writefp, record)
+		fmt.Fprintln(writefp, record.ToString())
 	}
 
 	if writefp != os.Stdout {
