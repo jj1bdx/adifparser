@@ -101,3 +101,32 @@ OUTER:
 		t.Fatalf("Expected field %v wasn't in the actual fields", exp)
 	}
 }
+
+// This is out of ADI file specification,
+// but in some cases you should expect non-ASCII characters in the field value.
+
+func TestGetNextField2(t *testing.T) {
+	buf := []byte("<noTes:5>12345<test:6> XY\xedZ <yum:7:s>ABCD!EF")
+
+	expected := []struct {
+		n string
+		v string
+	}{
+		{"notes", "12345"},
+		{"test", " XY\xedZ "},
+		{"yum", "ABCD!EF"},
+	}
+
+	var err error
+	var data *fieldData
+
+	for _, el := range expected {
+		data, buf, err = getNextField(buf)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if data.name != el.n || data.value != el.v {
+			t.Fatalf("Got %q=%q, expected %q=%q.", data.name, data.value, el.n, el.v)
+		}
+	}
+}
