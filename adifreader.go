@@ -23,8 +23,6 @@ type baseADIFReader struct {
 	headerRead bool
 	// Version string of the adif file
 	version string
-	// Excess read data
-	excess []byte
 	// Record count
 	records int
 }
