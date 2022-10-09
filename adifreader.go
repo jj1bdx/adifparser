@@ -3,6 +3,7 @@ package adifparser
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"io"
 	"strconv"
 )
@@ -35,6 +36,23 @@ type dedupeADIFReader struct {
 	seen map[string]bool
 }
 
+type elementData struct {
+	// ADIF field name
+	name []byte
+	// ADIF field (if nil, only the field name exists)
+	value []byte
+	// ADIF data type indicator (optional)
+	typecode byte
+	// ADIF specifier always has a corresponding value
+	// If hasValue is false, string inside "<>" is
+	// a tag without a value
+	hasValue bool
+	// ADIF specifier can optionally have a type
+	hasType bool
+	// Length of value bytes/string
+	valueLength int
+}
+
 func (ardr *baseADIFReader) ReadRecord() (ADIFRecord, error) {
 	if !ardr.headerRead {
 		ardr.readHeader()
@@ -57,6 +75,11 @@ func (ardr *baseADIFReader) ReadRecord() (ADIFRecord, error) {
 	}
 	return record, err
 }
+
+// Errors
+var InvalidFieldLength = errors.New("Invalid field length.")
+var TypeCodeExceedOneByte = errors.New("Type Code exceeds one byte.")
+var UnknownColons = errors.New("Unknown colons in the tag.")
 
 func (ardr *dedupeADIFReader) ReadRecord() (ADIFRecord, error) {
 	for true {
@@ -195,4 +218,109 @@ func trimLotwEof(buf []byte) []byte {
 
 func (ardr *baseADIFReader) RecordCount() int {
 	return ardr.records
+}
+
+func (ardr *baseADIFReader) readElement() (*elementData, error) {
+	var c byte
+	var err error
+	var fieldname []byte
+	var fieldvalue []byte
+	var fieldtype byte
+	var fieldlenstr []byte
+	var fieldlength int = 0
+
+	data := &elementData{}
+	data.name = nil
+	data.value = nil
+	data.typecode = 0
+	data.valueLength = 0
+
+	// Look for "<" (open tag) first
+	foundopentag := false
+	for !foundopentag {
+		// Read a byte (aka character)
+		c, err = ardr.rdr.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+		foundopentag = c == '<'
+	}
+
+	// Get field name
+	data.hasValue = false
+	data.hasType = false
+	// Look for ">" (close tag) first
+	foundclosetag := false
+	foundcolonnum := 0
+	foundtype := false
+	for !foundclosetag {
+		// Read a byte (aka character)
+		c, err = ardr.rdr.ReadByte()
+		if err != nil {
+			return nil, err
+		}
+		foundclosetag = c == '>'
+		if foundclosetag {
+			break
+		}
+		switch foundcolonnum {
+		case 0:
+			if c == ':' {
+				foundcolonnum++
+				data.hasValue = true
+				break
+			} else {
+				fieldname = append(fieldname, c)
+				break
+			}
+		case 1:
+			if c == ':' {
+				foundcolonnum++
+				data.hasType = true
+				break
+			} else {
+				if c >= '0' && c <= '9' {
+					fieldlenstr = append(fieldlenstr, c)
+					break
+				} else {
+					return nil, InvalidFieldLength
+				}
+			}
+		case 2:
+			if !foundtype {
+				fieldtype = c
+				foundtype = true
+				break
+			} else {
+				return nil, TypeCodeExceedOneByte
+			}
+		default:
+			return nil, UnknownColons
+		}
+	}
+
+	data.name = fieldname
+	data.typecode = fieldtype
+
+	// Get field length
+	if data.hasValue {
+		fieldlength, err = strconv.Atoi(string(fieldlenstr))
+		if err != nil {
+			return nil, err
+		}
+		data.valueLength = fieldlength
+
+		// Get field value/content,
+		// with the byte length specified by the field length
+		for i := 0; i < fieldlength; i++ {
+			c, err = ardr.rdr.ReadByte()
+			if err != nil {
+				return nil, err
+			}
+			fieldvalue = append(fieldvalue, c)
+		}
+		data.value = fieldvalue
+	}
+
+	return data, nil
 }

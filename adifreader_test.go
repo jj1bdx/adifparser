@@ -258,3 +258,38 @@ func TestReadRecordWithNoEOH(t *testing.T) {
 		t.Fatalf("Expected %v, got %v", io.EOF, err)
 	}
 }
+
+func TestForReadElement(t *testing.T) {
+	buf := strings.NewReader(" |FILLER1| <TEST:2>XY |FILLER 2| <EOR>  ")
+	reader := NewADIFReader(buf)
+	if reader == nil {
+		t.Fatal("Invalid reader.")
+	}
+	element, err := reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if string(element.name) != "TEST" {
+		t.Fatal("element.name not matched for TEST")
+	}
+	if string(element.value) != "XY" {
+		t.Fatal("element.value not matched for XY")
+	}
+	element, err = reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if string(element.name) != "EOR" {
+		t.Fatal("element.name not matched")
+	}
+	if element.hasValue {
+		t.Fatal("element.value for EOR is true")
+	}
+
+}
