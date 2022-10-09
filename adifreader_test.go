@@ -272,7 +272,7 @@ func TestForReadElement(t *testing.T) {
 	if element == nil {
 		t.Fatal("Got nil element.")
 	}
-	if string(element.name) != "TEST" {
+	if string(element.name) != "test" {
 		t.Fatal("element.name not matched for TEST")
 	}
 	if string(element.value) != "XY" {
@@ -285,7 +285,7 @@ func TestForReadElement(t *testing.T) {
 	if element == nil {
 		t.Fatal("Got nil element.")
 	}
-	if string(element.name) != "EOR" {
+	if string(element.name) != "eor" {
 		t.Fatal("element.name not matched")
 	}
 	if element.hasValue {

@@ -37,11 +37,11 @@ type dedupeADIFReader struct {
 }
 
 type elementData struct {
-	// ADIF field name
+	// ADIF field name (in ASCII, set to lowercase)
 	name []byte
 	// ADIF field (if nil, only the field name exists)
 	value []byte
-	// ADIF data type indicator (optional)
+	// ADIF data type indicator (optional, set to uppercase)
 	typecode byte
 	// ADIF specifier always has a corresponding value
 	// If hasValue is false, string inside "<>" is
@@ -299,8 +299,8 @@ func (ardr *baseADIFReader) readElement() (*elementData, error) {
 		}
 	}
 
-	data.name = fieldname
-	data.typecode = fieldtype
+	data.name = bStrictToLower(fieldname)
+	data.typecode = charToUpper(fieldtype)
 
 	// Get field length
 	if data.hasValue {
