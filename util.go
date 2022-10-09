@@ -5,6 +5,7 @@ import (
 )
 
 // Strictly-ASCII-only lowercase converter
+// For a byte sequence
 // No Unicode processing
 // See bytes.ToLower() source code
 func bStrictToLower(s []byte) []byte {
@@ -21,6 +22,30 @@ func bStrictToLower(s []byte) []byte {
 		c := s[i]
 		if 'A' <= c && c <= 'Z' {
 			c += 'a' - 'A'
+		}
+		b[i] = c
+	}
+	return b
+}
+
+// Strictly-ASCII-only uppercase converter
+// For a byte sequence
+// No Unicode processing
+// See bytes.ToUpper() source code
+func bStrictToUpper(s []byte) []byte {
+	hasLower := false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		hasLower = hasLower || ('a' <= c && c <= 'z')
+	}
+	if !hasLower {
+		return append([]byte(""), s...)
+	}
+	b := make([]byte, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if 'a' <= c && c <= 'z' {
+			c -= 'a' - 'A'
 		}
 		b[i] = c
 	}
