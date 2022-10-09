@@ -183,7 +183,7 @@ func (ardr *baseADIFReader) readElement() (*elementData, error) {
 	// Get field name
 	data.hasValue = false
 	data.hasType = false
-	// Look for ">" (close tag) first
+	// Look for ">" (close tag) next
 	foundclosetag := false
 	foundcolonnum := 0
 	foundtype := false
@@ -198,43 +198,52 @@ func (ardr *baseADIFReader) readElement() (*elementData, error) {
 			break
 		}
 		switch foundcolonnum {
+		// no colon yet: append the byte to the field name
 		case 0:
 			if c == ':' {
 				foundcolonnum++
 				data.hasValue = true
-				break
+				continue
 			} else {
 				fieldname = append(fieldname, c)
-				break
+				continue
 			}
+			// 1 colon found: handle the byte as a digit in the length
 		case 1:
 			if c == ':' {
 				foundcolonnum++
 				data.hasType = true
-				break
+				continue
 			} else {
 				if c >= '0' && c <= '9' {
 					fieldlenstr = append(fieldlenstr, c)
-					break
+					continue
 				} else {
 					return nil, InvalidFieldLength
 				}
 			}
+			// 2 colons found:
+		// pick up only one byte and use it as a field type
 		case 2:
 			if !foundtype {
 				fieldtype = c
 				foundtype = true
-				break
+				continue
 			} else {
 				return nil, TypeCodeExceedOneByte
 			}
+			// This code should not be reached...
 		default:
 			return nil, UnknownColons
 		}
 	}
 
+	// Make the field name lowercase
 	data.name = string(bStrictToLower(fieldname))
-	data.typecode = charToUpper(fieldtype)
+	// Make the field type name uppercase
+	if foundtype {
+		data.typecode = charToUpper(fieldtype)
+	}
 
 	// Get field length
 	if data.hasValue {
