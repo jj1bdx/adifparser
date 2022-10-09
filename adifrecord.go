@@ -108,7 +108,7 @@ func getNextField(buf []byte) (*fieldData, []byte, error) {
 		//    buf[start_of_name], buf[end_of_name], buf[end_of_tag])
 		return nil, buf, InvalidField
 	}
-		// fmt.Fprintf(os.Stderr, "buf: %s\n", string(buf))
+	// fmt.Fprintf(os.Stderr, "buf: %s\n", string(buf))
 	data.name = strings.ToLower(string(buf[start_of_name:end_of_name]))
 	buf = buf[end_of_name+1:]
 	// Adjust to new buffer
