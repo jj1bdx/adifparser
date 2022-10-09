@@ -4,6 +4,15 @@ import (
 	"bytes"
 )
 
+// ASCII lowercase converter
+// For a byte as an ASCII character
+func charToLower(c byte) byte {
+	if 'A' <= c && c <= 'Z' {
+		c += 'a' - 'A'
+	}
+	return c
+}
+
 // Strictly-ASCII-only lowercase converter
 // For a byte sequence
 // No Unicode processing
@@ -26,6 +35,15 @@ func bStrictToLower(s []byte) []byte {
 		b[i] = c
 	}
 	return b
+}
+
+// ASCII uppercase converter
+// For a byte as an ASCII character
+func charToUpper(c byte) byte {
+	if 'a' <= c && c <= 'z' {
+		c -= 'a' - 'A'
+	}
+	return c
 }
 
 // Strictly-ASCII-only uppercase converter
