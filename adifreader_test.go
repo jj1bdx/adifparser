@@ -220,3 +220,41 @@ func TestReadRecordWithFiller(t *testing.T) {
 	}
 
 }
+
+func TestReadRecordWithNonASCII(t *testing.T) {
+	buf := strings.NewReader("<TEXT:4>AB\xedD\xeb<EOR> ")
+	reader := NewADIFReader(buf)
+	if reader == nil {
+		t.Fatal("Invalid reader.")
+	}
+
+	r, err := reader.ReadRecord()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r == nil {
+		t.Fatal("Got nil record.")
+	}
+
+	if v, err := r.GetValue("text"); err != nil {
+		t.Fatal("Got value:text error")
+	} else {
+		if v != "AB\xedD" {
+			t.Fatal("Not matched")
+		}
+	}
+
+}
+
+func TestReadRecordWithNoEOH(t *testing.T) {
+	buf := strings.NewReader(" <TEST:1>A <EOR> ")
+	reader := NewADIFReader(buf)
+	if reader == nil {
+		t.Fatal("Invalid reader.")
+	}
+
+	_, err := reader.ReadRecord()
+	if err != io.EOF {
+		t.Fatalf("Expected %v, got %v", io.EOF, err)
+	}
+}
