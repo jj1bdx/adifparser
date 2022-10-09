@@ -2,7 +2,6 @@ package adifparser
 
 import (
 	"bufio"
-	"bytes"
 	"errors"
 	"io"
 	"strconv"
@@ -151,51 +150,6 @@ func (ardr *baseADIFReader) readHeader() {
 	}
 
 	ardr.headerRead = true
-}
-
-func (ardr *baseADIFReader) readChunk() ([]byte, error) {
-	chunk := make([]byte, 1024)
-	n, err := ardr.rdr.Read(chunk)
-	if err != nil {
-		return nil, err
-	}
-	return chunk[:n], nil
-}
-
-func (ardr *baseADIFReader) readRecord() ([]byte, error) {
-	eor := []byte("<eor>")
-	buf := ardr.excess
-	ardr.excess = nil
-	for !bContainsCI(buf, eor) {
-		newchunk, err := ardr.readChunk()
-		if err != nil {
-			ardr.excess = nil
-			if err == io.EOF {
-				buf = trimLotwEof(buf)
-				// Expected, pass it up the chain
-				if len(buf) > 0 {
-					return bytes.Trim(buf, "\r\n"), nil
-				}
-				return nil, err
-			}
-			adiflog.Println(err)
-			return nil, err
-		}
-		buf = append(buf, newchunk...)
-	}
-	buf = trimLotwEof(buf)
-	record_end := bIndexCI(buf, eor)
-	ardr.excess = buf[record_end+len(eor):]
-	return bytes.Trim(buf[:record_end], "\r\n"), nil
-}
-
-func trimLotwEof(buf []byte) []byte {
-	// LotW ends their files with a non-standard EOF tag.
-	lotwEOF := []byte("<app_lotw_eof>")
-	if eofIndex := bIndexCI(buf, lotwEOF); eofIndex != -1 {
-		buf = buf[:eofIndex]
-	}
-	return buf
 }
 
 func (ardr *baseADIFReader) RecordCount() int {

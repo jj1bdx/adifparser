@@ -38,28 +38,6 @@ func TestHeaderComment(t *testing.T) {
 	testHeaderFile(t, "testdata/header_comment.adi")
 }
 
-func TestInternalReadRecord(t *testing.T) {
-	f, err := os.Open("testdata/readrecord.adi")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	reader := &baseADIFReader{}
-	reader.rdr = bufio.NewReader(f)
-
-	testStrings := [...]string{
-		"<mycall:6>KF4MDV", "<mycall:6>KG4JEL", "<mycall:4>W1AW"}
-	for i := range testStrings {
-		buf, err := reader.readRecord()
-		if err != nil && err != io.EOF {
-			t.Fatal(err)
-		}
-		if string(buf) != testStrings[i] {
-			t.Fatalf("Got bad record %q, expected %q.", string(buf), testStrings[i])
-		}
-	}
-}
-
 func TestReadRecord(t *testing.T) {
 	f, err := os.Open("testdata/readrecord.adi")
 	if err != nil {
@@ -223,6 +201,9 @@ func TestReadRecordWithFiller(t *testing.T) {
 
 }
 
+// This is out of ADI file specification,
+// but in some cases you should expect non-ASCII characters in the field value.
+
 func TestReadRecordWithNonASCII(t *testing.T) {
 	buf := strings.NewReader("<TEXT:4>AB\xedD\xeb<EOR> ")
 	reader := NewADIFReader(buf)
@@ -242,6 +223,45 @@ func TestReadRecordWithNonASCII(t *testing.T) {
 		t.Fatal("Got value:text error")
 	} else {
 		if v != "AB\xedD" {
+			t.Fatal("Not matched")
+		}
+	}
+
+}
+
+func TestReadRecordWithNonASCII2(t *testing.T) {
+	buf := strings.NewReader("<noTes:5>12345<test:6> XY\xedZ <yum:7:s>ABCD!EF<EOR>")
+	reader := NewADIFReader(buf)
+	if reader == nil {
+		t.Fatal("Invalid reader.")
+	}
+
+	r, err := reader.ReadRecord()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r == nil {
+		t.Fatal("Got nil record.")
+	}
+
+	if v, err := r.GetValue("notes"); err != nil {
+		t.Fatal("Got value:notes error")
+	} else {
+		if v != "12345" {
+			t.Fatal("Not matched")
+		}
+	}
+	if v, err := r.GetValue("test"); err != nil {
+		t.Fatal("Got value:test error")
+	} else {
+		if v != " XY\xedZ " {
+			t.Fatal("Not matched")
+		}
+	}
+	if v, err := r.GetValue("yum"); err != nil {
+		t.Fatal("Got value:yum error")
+	} else {
+		if v != "ABCD!EF" {
 			t.Fatal("Not matched")
 		}
 	}
