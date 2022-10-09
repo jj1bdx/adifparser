@@ -54,26 +54,33 @@ type elementData struct {
 }
 
 func (ardr *baseADIFReader) ReadRecord() (ADIFRecord, error) {
+	record := NewADIFRecord()
+
 	if !ardr.headerRead {
 		ardr.readHeader()
 	}
-	buf, err := ardr.readRecord()
-	if err != nil {
-		if err != io.EOF {
-			adiflog.Printf("readRecord: %v", err)
+
+	foundeor := false
+	for !foundeor {
+		element, err := ardr.readElement()
+		if err != nil {
+			if err != io.EOF {
+				adiflog.Printf("readElement: %v", err)
+			}
+			return nil, err
 		}
-		return nil, err
+		if element.name == "eor" && !element.hasValue {
+			foundeor = true
+			break
+		}
+		if element.hasValue {
+			// TODO: accomodate types
+			record.values[element.name] = element.value
+		}
 	}
-	if len(bytes.TrimSpace(buf)) == 0 {
-		// No data left
-		return nil, io.EOF
-	}
-	record, err := ParseADIFRecord(buf)
-	if err == nil {
-		ardr.records += 1
-		return record, nil
-	}
-	return record, err
+	// Successfully parsed the record
+	ardr.records++
+	return record, nil
 }
 
 // Errors
