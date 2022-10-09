@@ -19,9 +19,11 @@ func testHeaderFile(t *testing.T, filename string) {
 	reader := &baseADIFReader{}
 	reader.rdr = bufio.NewReader(f)
 	reader.readHeader()
-	if !bytes.HasPrefix(reader.excess, []byte("<mycall")) {
-		t.Fatalf("Excess has %s, expected %s.", string(reader.excess), "<mycall")
+	prefix, err := reader.rdr.Peek(128)
+	if bytes.HasPrefix(prefix, []byte("<mycall")) {
+		t.Fatalf("prefix has %s, expected %s.", string(prefix), "<mycall")
 	}
+	t.Logf("adif_version: %s", reader.version)
 }
 
 func TestHeaderNone(t *testing.T) {

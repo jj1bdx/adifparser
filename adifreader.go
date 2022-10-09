@@ -22,8 +22,8 @@ type baseADIFReader struct {
 	noHeader bool
 	// Whether or not the header has been read
 	headerRead bool
-	// Version of the adif file
-	version float64
+	// Version string of the adif file
+	version string
 	// Excess read data
 	excess []byte
 	// Record count
@@ -112,7 +112,7 @@ func NewDedupeADIFReader(r io.Reader) *dedupeADIFReader {
 func (ardr *baseADIFReader) init(r io.Reader) {
 	ardr.rdr = bufio.NewReader(r)
 	// Assumption
-	ardr.version = 2
+	ardr.version = "2.0"
 	ardr.records = 0
 	// check header
 	filestart, err := ardr.rdr.Peek(1)
@@ -127,48 +127,23 @@ func (ardr *baseADIFReader) init(r io.Reader) {
 }
 
 func (ardr *baseADIFReader) readHeader() {
-	ardr.headerRead = true
-	eoh := []byte("<eoh>")
-	adif_version := []byte("<adif_ver:")
-	chunk, err := ardr.readChunk()
-	if err != nil {
-		// TODO: Log the error somewhere
-		return
-	}
-	if bytes.HasPrefix(chunk, []byte("<")) {
-		if bytes.HasPrefix(bytes.ToLower(chunk), adif_version) {
-			ver_len_str_end := bytes.Index(chunk, []byte(">"))
-			ver_len_str := string(chunk[len(adif_version):ver_len_str_end])
-			ver_len, err := strconv.Atoi(ver_len_str)
-			if err != nil {
-				adiflog.Fatal(err)
-			}
-			ver_len_end := ver_len_str_end + 1 + ver_len
-			ardr.version, err = strconv.ParseFloat(
-				string(chunk[ver_len_str_end+1:ver_len_end]), 0)
-			excess := chunk[ver_len_end:]
-			eoh_end := bIndexCI(excess, eoh) + len(eoh)
-			excess = excess[eoh_end:]
-			ardr.excess = excess[tagStartPos(excess):]
-		} else if bytes.HasPrefix(bytes.ToLower(chunk), eoh) {
-			eoh_end := bIndexCI(chunk, eoh) + len(eoh)
-			ardr.excess = chunk[eoh_end:]
-		} else {
-			ardr.excess = chunk
-		}
-		return
-	}
-	for !bContainsCI(chunk, eoh) {
-		newchunk, err := ardr.readChunk()
+	foundeoh := false
+	for !foundeoh {
+		element, err := ardr.readElement()
 		if err != nil {
 			// TODO: Log the error somewhere
 			return
 		}
-		chunk = append(chunk, newchunk...)
+		if element.name == "eoh" && !element.hasValue {
+			foundeoh = true
+			break
+		}
+		if element.name == "adif_ver" && element.hasValue {
+			ardr.version = element.value
+		}
 	}
-	offset := bIndexCI(chunk, eoh) + len(eoh)
-	chunk = chunk[offset:]
-	ardr.excess = chunk[tagStartPos(chunk):]
+
+	ardr.headerRead = true
 }
 
 func (ardr *baseADIFReader) readChunk() ([]byte, error) {
