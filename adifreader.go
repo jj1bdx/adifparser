@@ -3,9 +3,7 @@ package adifparser
 import (
 	"bufio"
 	"bytes"
-	// "fmt"
 	"io"
-	// "os"
 	"strconv"
 )
 
@@ -183,8 +181,6 @@ func (ardr *baseADIFReader) readRecord() ([]byte, error) {
 	buf = trimLotwEof(buf)
 	record_end := bIndexCI(buf, eor)
 	ardr.excess = buf[record_end+len(eor):]
-	// fmt.Fprintf(os.Stderr, "record buf: %s\n", string(buf))
-	// fmt.Fprintf(os.Stderr, "record excess: %s\n", string(ardr.excess))
 	return bytes.Trim(buf[:record_end], "\r\n"), nil
 }
 
