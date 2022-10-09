@@ -138,7 +138,11 @@ func (ardr *baseADIFReader) readHeader() {
 		return
 	}
 	for !bContainsCI(chunk, eoh) {
-		newchunk, _ := ardr.readChunk()
+		newchunk, err := ardr.readChunk()
+		if err != nil {
+			// TODO: Log the error somewhere
+			return
+		}
 		chunk = append(chunk, newchunk...)
 	}
 	offset := bIndexCI(chunk, eoh) + len(eoh)
