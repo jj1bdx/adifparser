@@ -81,12 +81,12 @@ func (ardr *baseADIFReader) ReadRecord() (ADIFRecord, error) {
 }
 
 // Errors
-var InvalidFieldLength = errors.New("Invalid field length.")
-var TypeCodeExceedOneByte = errors.New("Type Code exceeds one byte.")
-var UnknownColons = errors.New("Unknown colons in the tag.")
+var ErrInvalidFieldLength = errors.New("invalid field length")
+var ErrTypeCodeExceedOneByte = errors.New("ADIF typecode exceeds one byte")
+var ErrUnknownColons = errors.New("unknown colons in the tag")
 
 func (ardr *dedupeADIFReader) ReadRecord() (ADIFRecord, error) {
-	for true {
+	for {
 		record, err := ardr.baseADIFReader.ReadRecord()
 		if err != nil {
 			return nil, err
@@ -97,7 +97,6 @@ func (ardr *dedupeADIFReader) ReadRecord() (ADIFRecord, error) {
 			return record, nil
 		}
 	}
-	return nil, nil
 }
 
 func NewADIFReader(r io.Reader) *baseADIFReader {
@@ -157,17 +156,13 @@ func (ardr *baseADIFReader) RecordCount() int {
 func (ardr *baseADIFReader) readElement() (*elementData, error) {
 	var c byte
 	var err error
-	var fieldname []byte
-	var fieldvalue []byte
+	fieldname := make([]byte, 0, 128)
+	fieldvalue := make([]byte, 0, 256)
 	var fieldtype byte
-	var fieldlenstr []byte
+	fieldlenstr := make([]byte, 0, 8)
 	var fieldlength int = 0
 
 	data := &elementData{}
-	data.name = ""
-	data.value = ""
-	data.typecode = 0
-	data.valueLength = 0
 
 	// Look for "<" (open tag) first
 	foundopentag := false
@@ -206,7 +201,6 @@ func (ardr *baseADIFReader) readElement() (*elementData, error) {
 			} else {
 				fieldname = append(fieldname, c)
 			}
-			break
 		case 1:
 			// 1 colon found:
 			// handle the byte as a digit in the length
@@ -217,10 +211,9 @@ func (ardr *baseADIFReader) readElement() (*elementData, error) {
 				if c >= '0' && c <= '9' {
 					fieldlenstr = append(fieldlenstr, c)
 				} else {
-					return nil, InvalidFieldLength
+					return nil, ErrInvalidFieldLength
 				}
 			}
-			break
 		case 2:
 			// 2 colons found:
 			// pick up only one byte and use it as a field type
@@ -228,12 +221,11 @@ func (ardr *baseADIFReader) readElement() (*elementData, error) {
 				fieldtype = c
 				foundtype = true
 			} else {
-				return nil, TypeCodeExceedOneByte
+				return nil, ErrTypeCodeExceedOneByte
 			}
-			break
-			// This code should not be reached...
 		default:
-			return nil, UnknownColons
+			// This code should not be reached...
+			return nil, ErrUnknownColons
 		}
 	}
 
