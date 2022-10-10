@@ -19,7 +19,7 @@ func testHeaderFile(t *testing.T, filename string) {
 	reader := &baseADIFReader{}
 	reader.rdr = bufio.NewReader(f)
 	reader.readHeader()
-	prefix, err := reader.rdr.Peek(128)
+	prefix, _ := reader.rdr.Peek(128)
 	if bytes.HasPrefix(prefix, []byte("<mycall")) {
 		t.Fatalf("prefix has %s, expected %s.", string(prefix), "<mycall")
 	}
@@ -402,7 +402,7 @@ func TestReadElement2(t *testing.T) {
 		t.Fatal("element.value not matched for W1AW")
 	}
 
-	element, err = reader.readElement()
+	_, err = reader.readElement()
 	if err != nil && err != io.EOF {
 		t.Fatal(err)
 	}
@@ -472,7 +472,7 @@ func TestReadElement3(t *testing.T) {
 		t.Fatal("element.typecode not matched for S")
 	}
 
-	element, err = reader.readElement()
+	_, err = reader.readElement()
 	if err != nil && err != io.EOF {
 		t.Fatal(err)
 	}

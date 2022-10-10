@@ -27,17 +27,8 @@ type baseADIFRecord struct {
 	values map[string]string
 }
 
-type fieldData struct {
-	name     string
-	value    string
-	typecode byte
-	hasType  bool
-}
-
 // Errors
-var NoData = errors.New("No data to parse.")
-var NoSuchField = errors.New("No such field.")
-var InvalidField = errors.New("Invalid field definition.")
+var ErrNoSuchField = errors.New("no such field")
 
 // Create a new ADIFRecord from scratch
 func NewADIFRecord() *baseADIFRecord {
@@ -90,7 +81,7 @@ func (r *baseADIFRecord) GetValue(name string) (string, error) {
 	if v, ok := r.values[name]; ok {
 		return v, nil
 	}
-	return "", NoSuchField
+	return "", ErrNoSuchField
 }
 
 // Set a value

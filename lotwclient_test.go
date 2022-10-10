@@ -10,7 +10,7 @@ type mockBody struct {
 	strings.Reader
 }
 
-func (_ *mockBody) Close() error {
+func (*mockBody) Close() error {
 	return nil
 }
 

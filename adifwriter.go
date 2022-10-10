@@ -7,7 +7,7 @@ import (
 	"io"
 )
 
-var OutputStarted = errors.New("Output already started.")
+var ErrOutputStarted = errors.New("output already started")
 
 // Basic writer type
 type ADIFWriter interface {
@@ -45,7 +45,7 @@ func (writer *baseADIFWriter) Flush() error {
 
 func (writer *baseADIFWriter) SetComment(comment string) error {
 	if writer.started {
-		return OutputStarted
+		return ErrOutputStarted
 	}
 	fmt.Fprintf(writer.writer, "%s<eoh>\n", comment)
 	return nil
