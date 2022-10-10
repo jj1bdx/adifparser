@@ -281,7 +281,7 @@ func TestReadRecordWithNoEOH(t *testing.T) {
 	}
 }
 
-func TestForReadElement(t *testing.T) {
+func TestReadElement(t *testing.T) {
 	buf := strings.NewReader(" |FILLER1| <TeSt:2>XY |FILLER 2| <eOr>  ")
 	reader := NewADIFReader(buf)
 	if reader == nil {
@@ -313,5 +313,167 @@ func TestForReadElement(t *testing.T) {
 	if element.hasValue {
 		t.Fatal("element.value for EOR is true")
 	}
+}
 
+func TestReadElement2(t *testing.T) {
+	f, err := os.Open("testdata/readrecord.adi")
+	if err != nil {
+		t.Fatal(err)
+	}
+	reader := &baseADIFReader{}
+	reader.rdr = bufio.NewReader(f)
+
+	element, err := reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if element.name != "mycall" {
+		t.Fatal("element.name not matched for mycall")
+	}
+	if !element.hasValue {
+		t.Fatal("element must have value")
+	}
+	if element.value != "KF4MDV" {
+		t.Fatal("element.value not matched for KF4MDV")
+	}
+
+	element, err = reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if element.name != "eor" {
+		t.Fatal("element.name not matched")
+	}
+	if element.hasValue {
+		t.Fatal("element.value for EOR is true")
+	}
+
+	element, err = reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if element.name != "mycall" {
+		t.Fatal("element.name not matched for mycall")
+	}
+	if !element.hasValue {
+		t.Fatal("element must have value")
+	}
+	if element.value != "KG4JEL" {
+		t.Fatal("element.value not matched for KG4JEL")
+	}
+
+	element, err = reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if element.name != "eor" {
+		t.Fatal("element.name not matched")
+	}
+	if element.hasValue {
+		t.Fatal("element.value for EOR is true")
+	}
+
+	element, err = reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if element.name != "mycall" {
+		t.Fatal("element.name not matched for mycall")
+	}
+	if !element.hasValue {
+		t.Fatal("element must have value")
+	}
+	if element.value != "W1AW" {
+		t.Fatal("element.value not matched for W1AW")
+	}
+
+	element, err = reader.readElement()
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
+}
+
+func TestReadElement3(t *testing.T) {
+	buf := bytes.NewReader([]byte("<blah:2>AB<FOO:3>XYZ <bar:4:s>1234"))
+	reader := NewADIFReader(buf)
+	if reader == nil {
+		t.Fatal("Invalid reader.")
+	}
+
+	element, err := reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if element.name != "blah" {
+		t.Fatal("element.name not matched for blah")
+	}
+	if !element.hasValue {
+		t.Fatal("element must have value")
+	}
+	if element.value != "AB" {
+		t.Fatal("element.value not matched for AB")
+	}
+
+	element, err = reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if element.name != "foo" {
+		t.Fatal("element.name not matched for foo")
+	}
+	if !element.hasValue {
+		t.Fatal("element must have value")
+	}
+	if element.value != "XYZ" {
+		t.Fatal("element.value not matched for XYZ")
+	}
+
+	element, err = reader.readElement()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if element == nil {
+		t.Fatal("Got nil element.")
+	}
+	if element.name != "bar" {
+		t.Fatal("element.name not matched for bar")
+	}
+	if !element.hasValue {
+		t.Fatal("element must have value")
+	}
+	if element.value != "1234" {
+		t.Fatal("element.value not matched for 1234")
+	}
+	if !element.hasType {
+		t.Fatal("element must have type")
+	}
+	if element.typecode != 'S' {
+		t.Fatal("element.typecode not matched for S")
+	}
+
+	element, err = reader.readElement()
+	if err != nil && err != io.EOF {
+		t.Fatal(err)
+	}
 }
