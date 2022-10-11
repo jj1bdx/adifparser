@@ -176,19 +176,16 @@ func main() {
 		updateStatMaps(record)
 	}
 
-	if writefp != os.Stdout {
-		writefp.Close()
-	}
-
+	// Calculate and output the stats
 	switch {
 	case *query == "bands":
 		for band := range bandList {
 			num, exists := mapBand[bandList[band]]
 			if exists {
-				fmt.Printf("%s %d ", bandList[band], num)
+				fmt.Fprintf(writefp, "%s %d ", bandList[band], num)
 			}
 		}
-		fmt.Printf("\n")
+		fmt.Fprintf(writefp, "\n")
 	case *query == "country":
 		keys := make([]string, 0, len(mapCountry))
 		for k := range mapCountry {
@@ -196,9 +193,9 @@ func main() {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			fmt.Printf("%s: %d\n", k, mapCountry[k])
+			fmt.Fprintf(writefp, "%s: %d\n", k, mapCountry[k])
 		}
-		fmt.Println("(TOTAL):", reader.RecordCount())
+		fmt.Fprintln(writefp, "(TOTAL):", reader.RecordCount())
 	case *query == "dxcc":
 		keys := make([]int, 0, len(mapDxcc))
 		for k := range mapDxcc {
@@ -206,9 +203,9 @@ func main() {
 		}
 		sort.Ints(keys)
 		for _, n := range keys {
-			fmt.Printf("%d ", n)
+			fmt.Fprintf(writefp, "%d ", n)
 		}
-		fmt.Printf("\n")
+		fmt.Fprintf(writefp, "\n")
 	case *query == "gridsquare":
 		keys := make([]string, 0, len(mapGrid))
 		for k := range mapGrid {
@@ -216,9 +213,9 @@ func main() {
 		}
 		sort.Strings(keys)
 		for _, g := range keys {
-			fmt.Printf("%s ", g)
+			fmt.Fprintf(writefp, "%s ", g)
 		}
-		fmt.Printf("\n")
+		fmt.Fprintf(writefp, "\n")
 	case *query == "modes":
 		keys := make([]string, 0, len(mapMode))
 		for k := range mapMode {
@@ -226,9 +223,9 @@ func main() {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			fmt.Printf("%s %d ", k, mapMode[k])
+			fmt.Fprintf(writefp, "%s %d ", k, mapMode[k])
 		}
-		fmt.Printf("\n")
+		fmt.Fprintf(writefp, "\n")
 	case *query == "submodes":
 		keys := make([]string, 0, len(mapSubmode))
 		for k := range mapSubmode {
@@ -236,15 +233,21 @@ func main() {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			fmt.Printf("%s %d ", k, mapSubmode[k])
+			fmt.Fprintf(writefp, "%s %d ", k, mapSubmode[k])
 		}
-		fmt.Printf("\n")
+		fmt.Fprintf(writefp, "\n")
 	case *query == "nqso":
-		fmt.Println(reader.RecordCount())
+		fmt.Fprintln(writefp, reader.RecordCount())
 	default:
 		fmt.Fprintln(os.Stderr, "Not a valid query type")
 		fmt.Fprintln(os.Stderr, "Valid types:")
 		fmt.Fprintln(os.Stderr, "  bands, country, dxcc, gridsquare,")
 		fmt.Fprintln(os.Stderr, "  modes, nqso, submodes")
 	}
+
+	// Close output here
+	if writefp != os.Stdout {
+		writefp.Close()
+	}
+
 }
