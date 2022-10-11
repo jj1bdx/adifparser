@@ -47,6 +47,7 @@ func main() {
 		}
 	}
 
+	var writer adifparser.ADIFWriter
 	var writefp *os.File
 	if *outfile != "" {
 		writefp, err = os.Create(*outfile)
@@ -54,8 +55,10 @@ func main() {
 			fmt.Fprint(os.Stderr, err)
 			return
 		}
+		writer = adifparser.NewADIFWriter(writefp)
 	} else {
-		writefp = os.Stdout
+		writefp = nil
+		writer = adifparser.NewADIFWriter(os.Stdout)
 	}
 
 	var startTime time.Time
@@ -162,10 +165,11 @@ func main() {
 	}
 
 	for i := range records {
-		fmt.Fprintln(writefp, records[i].record.ToString())
+		writer.WriteRecord(records[i].record)
 	}
 
-	// Close output here
+	// Flush and close output here
+	writer.Flush()
 	if writefp != os.Stdout {
 		writefp.Close()
 	}
