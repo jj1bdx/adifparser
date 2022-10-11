@@ -140,7 +140,7 @@ func updateStatMaps(record adifparser.ADIFRecord) {
 }
 
 func main() {
-	var infile = flag.String("f", "", "input file ('-' for stdin)")
+	var infile = flag.String("f", "", "input file (stdin if none)")
 	var outfile = flag.String("o", "", "output file (stdout if none)")
 	var query = flag.String("q", "", "query type")
 	var fp *os.File
@@ -149,11 +149,6 @@ func main() {
 	flag.Parse()
 
 	if *infile == "" {
-		fmt.Fprint(os.Stderr, "Need infile.\n")
-		return
-	}
-
-	if *infile == "-" {
 		fp = os.Stdin
 	} else {
 		fp, err = os.Open(*infile)
@@ -175,7 +170,7 @@ func main() {
 
 	initStatMaps()
 
-	reader := adifparser.NewDedupeADIFReader(fp)
+	reader := adifparser.NewADIFReader(fp)
 	for record, err := reader.ReadRecord(); record != nil || err != nil; record, err = reader.ReadRecord() {
 		if err != nil {
 			if err != io.EOF {
