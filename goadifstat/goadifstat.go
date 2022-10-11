@@ -176,9 +176,7 @@ func main() {
 	initStatMaps()
 
 	reader := adifparser.NewADIFReader(fp)
-	for record, err := reader.ReadRecord(); 
-	    record != nil || err != nil; 
-	    record, err = reader.ReadRecord() {
+	for record, err := reader.ReadRecord(); record != nil || err != nil; record, err = reader.ReadRecord() {
 		if err != nil {
 			if err != io.EOF {
 				fmt.Fprint(os.Stderr, err)
