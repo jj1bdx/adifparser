@@ -139,9 +139,11 @@ func updateStatMaps(record adifparser.ADIFRecord) {
 }
 
 func main() {
-	var infile = flag.String("f", "", "input file")
-	var outfile = flag.String("o", "", "output file")
+	var infile = flag.String("f", "", "input file ('-' for stdin)")
+	var outfile = flag.String("o", "", "output file (stdout if none)")
 	var query = flag.String("q", "", "query type")
+	var fp *os.File
+	var err error
 
 	flag.Parse()
 
@@ -150,10 +152,14 @@ func main() {
 		return
 	}
 
-	fp, err := os.Open(*infile)
-	if err != nil {
-		fmt.Fprint(os.Stderr, err)
-		return
+	if *infile == "-" {
+		fp = os.Stdin
+	} else {
+		fp, err = os.Open(*infile)
+		if err != nil {
+			fmt.Fprint(os.Stderr, err)
+			return
+		}
 	}
 
 	var writefp *os.File
