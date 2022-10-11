@@ -14,10 +14,13 @@
 // the condition is: record time <= endtime
 //
 // Sorting conditions:
-// when without -r option or -r=false (default):
-// the output is sorted by time increasing order
-// when with -r option or -r=true:
-// The output is sorted by time decreasing order
+// when with -n option or -n=true:
+//   the output is not sorted
+// when without -n option or -n=false (default):
+//   when without -r option or -r=false (default):
+//   the output is sorted by time increasing order
+//   when with -r option or -r=true:
+//   the output is sorted by time decreasing order
 
 package main
 
@@ -43,6 +46,8 @@ func main() {
 	var outfile = flag.String("o", "", "output file (stdout if none)")
 	var reverse bool
 	flag.BoolVar(&reverse, "r", false, "reverse sort (new to old)")
+	var nosorting bool
+	flag.BoolVar(&nosorting, "n", false, "no sorting with this flag")
 	var starttime = flag.String("starttime", "", "start time in RFC3339")
 	var endtime = flag.String("endtime", "", "end time in RFC3339")
 
@@ -168,16 +173,18 @@ func main() {
 		}
 	}
 
-	if reverse {
-		sort.Slice(records,
-			func(i, j int) bool {
-				return records[i].date.After(records[j].date)
-			})
-	} else {
-		sort.Slice(records,
-			func(i, j int) bool {
-				return records[i].date.Before(records[j].date)
-			})
+	if !nosorting {
+		if reverse {
+			sort.Slice(records,
+				func(i, j int) bool {
+					return records[i].date.After(records[j].date)
+				})
+		} else {
+			sort.Slice(records,
+				func(i, j int) bool {
+					return records[i].date.Before(records[j].date)
+				})
+		}
 	}
 
 	for i := range records {
