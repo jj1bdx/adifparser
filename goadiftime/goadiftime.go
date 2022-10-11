@@ -1,3 +1,24 @@
+// goadiftime: sort and filter ADIF file by time
+// by Kenji Rikitake, JJ1BDX
+// Usage: goadifstat [-f infile] [-o outfile] [-r]
+//        [-starttime RFC3339-time] [-endtime RFC3339-time]
+// RFC3339-time example: 2022-10-11T12:33:45Z
+// Time of ADIF record determined by: qso_date and time_on
+//
+// Time filtering conditions:
+// if starttime and endtime both are specified:
+// the condition is: starttime <= record time <= endtime
+// if only starttime is specified:
+// the condition is: starttime <= record time
+// if only endtime is specified:
+// the condition is: record time <= endtime
+//
+// Sorting conditions:
+// when without -r option or -r=false (default):
+// the output is sorted by time increasing order
+// when with -r option or -r=true:
+// The output is sorted by time decreasing order
+
 package main
 
 import (
