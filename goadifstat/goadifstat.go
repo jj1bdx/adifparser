@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"github.com/jj1bdx/adifparser"
@@ -163,10 +164,13 @@ func main() {
 	}
 
 	var writefp *os.File
+	var writer *bufio.Writer
 	if *outfile != "" {
 		writefp, err = os.Create(*outfile)
+		writer = bufio.NewWriter(writefp)
 	} else {
-		writefp = os.Stdout
+		writefp = nil
+		writer = bufio.NewWriter(os.Stdout)
 	}
 
 	initStatMaps()
@@ -188,10 +192,10 @@ func main() {
 		for band := range bandList {
 			num, exists := mapBand[bandList[band]]
 			if exists {
-				fmt.Fprintf(writefp, "%s %d ", bandList[band], num)
+				fmt.Fprintf(writer, "%s %d ", bandList[band], num)
 			}
 		}
-		fmt.Fprintf(writefp, "\n")
+		fmt.Fprintf(writer, "\n")
 	case *query == "country":
 		keys := make([]string, 0, len(mapCountry))
 		for k := range mapCountry {
@@ -199,9 +203,9 @@ func main() {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			fmt.Fprintf(writefp, "%s: %d\n", k, mapCountry[k])
+			fmt.Fprintf(writer, "%s: %d\n", k, mapCountry[k])
 		}
-		fmt.Fprintln(writefp, "(TOTAL):", reader.RecordCount())
+		fmt.Fprintln(writer, "(TOTAL):", reader.RecordCount())
 	case *query == "dxcc":
 		keys := make([]int, 0, len(mapDxcc))
 		for k := range mapDxcc {
@@ -209,9 +213,9 @@ func main() {
 		}
 		sort.Ints(keys)
 		for _, n := range keys {
-			fmt.Fprintf(writefp, "%d ", n)
+			fmt.Fprintf(writer, "%d ", n)
 		}
-		fmt.Fprintf(writefp, "\n")
+		fmt.Fprintf(writer, "\n")
 	case *query == "gridsquare":
 		keys := make([]string, 0, len(mapGrid))
 		for k := range mapGrid {
@@ -219,9 +223,9 @@ func main() {
 		}
 		sort.Strings(keys)
 		for _, g := range keys {
-			fmt.Fprintf(writefp, "%s ", g)
+			fmt.Fprintf(writer, "%s ", g)
 		}
-		fmt.Fprintf(writefp, "\n")
+		fmt.Fprintf(writer, "\n")
 	case *query == "modes":
 		keys := make([]string, 0, len(mapMode))
 		for k := range mapMode {
@@ -229,9 +233,9 @@ func main() {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			fmt.Fprintf(writefp, "%s %d ", k, mapMode[k])
+			fmt.Fprintf(writer, "%s %d ", k, mapMode[k])
 		}
-		fmt.Fprintf(writefp, "\n")
+		fmt.Fprintf(writer, "\n")
 	case *query == "submodes":
 		keys := make([]string, 0, len(mapSubmode))
 		for k := range mapSubmode {
@@ -239,11 +243,11 @@ func main() {
 		}
 		sort.Strings(keys)
 		for _, k := range keys {
-			fmt.Fprintf(writefp, "%s %d ", k, mapSubmode[k])
+			fmt.Fprintf(writer, "%s %d ", k, mapSubmode[k])
 		}
-		fmt.Fprintf(writefp, "\n")
+		fmt.Fprintf(writer, "\n")
 	case *query == "nqso":
-		fmt.Fprintln(writefp, reader.RecordCount())
+		fmt.Fprintln(writer, reader.RecordCount())
 	default:
 		fmt.Fprintln(os.Stderr, "Not a valid query type")
 		fmt.Fprintln(os.Stderr, "Valid types:")
@@ -251,8 +255,9 @@ func main() {
 		fmt.Fprintln(os.Stderr, "  modes, nqso, submodes")
 	}
 
-	// Close output here
-	if writefp != os.Stdout {
+	// Flush and close output here
+	writer.Flush()
+	if writefp != nil {
 		writefp.Close()
 	}
 
