@@ -18,7 +18,7 @@ type recordWithTime struct {
 }
 
 func main() {
-	var infile = flag.String("f", "", "input file ('-' for stdin)")
+	var infile = flag.String("f", "", "input file (stdout in none)")
 	var outfile = flag.String("o", "", "output file (stdout if none)")
 	var reverse bool
 	flag.BoolVar(&reverse, "r", false, "reverse sort (new to old)")
@@ -33,11 +33,6 @@ func main() {
 	flag.Parse()
 
 	if *infile == "" {
-		fmt.Fprint(os.Stderr, "Need infile.\n")
-		return
-	}
-
-	if *infile == "-" {
 		fp = os.Stdin
 	} else {
 		fp, err = os.Open(*infile)
@@ -88,7 +83,7 @@ func main() {
 		return
 	}
 
-	reader := adifparser.NewDedupeADIFReader(fp)
+	reader := adifparser.NewADIFReader(fp)
 	for record, err := reader.ReadRecord(); record != nil || err != nil; record, err = reader.ReadRecord() {
 		if err != nil {
 			if err != io.EOF {
