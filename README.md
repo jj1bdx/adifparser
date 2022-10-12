@@ -23,3 +23,7 @@ include an ADIF test case to demonstrate your bug.
 ### Original repository
 
 https://github.com/Matir/adifparser
+
+### See goadiftools repository for the tools
+
+All tools by @jj1bdx are moved to https://github.com/jj1bdx/goadiftools
