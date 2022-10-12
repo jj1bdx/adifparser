@@ -20,6 +20,8 @@ type ADIFRecord interface {
 	SetValue(string, string)
 	// Get all of the present field names
 	GetFields() []string
+	// Delete a field
+	DeleteField(string) (bool, error)
 }
 
 // Internal implementation for ADIFRecord
@@ -98,4 +100,13 @@ func (r *baseADIFRecord) GetFields() []string {
 		i++
 	}
 	return keys
+}
+
+// Delete a field (from the internal map)
+func (r *baseADIFRecord) DeleteField(name string) (bool, error) {
+	if _, ok := r.values[name]; ok {
+		delete(r.values, name)
+		return true, nil
+	}
+	return false, ErrNoSuchField
 }

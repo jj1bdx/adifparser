@@ -56,3 +56,39 @@ OUTER:
 		t.Fatalf("Expected field %v wasn't in the actual fields", exp)
 	}
 }
+
+func TestDeleteField(t *testing.T) {
+	testData := map[string]string{
+		"call":         "W1AW",
+		"notes":        "This is a notice",
+		"STATION_CALL": "KF4MDV"}
+	expected := [2]string{"call", "station_call"}
+
+	record := NewADIFRecord()
+	for k, v := range testData {
+		record.SetValue(k, v)
+	}
+	success, err := record.DeleteField("nothere")
+	if err != ErrNoSuchField {
+		t.Fatal(err)
+	}
+	success, err = record.DeleteField("notes")
+	if !success || err != nil {
+		t.Fatalf("success: %t, err: %v", success, err)
+	}
+	fieldNames := record.GetFields()
+
+	if len(fieldNames) != len(expected) {
+		t.Fatalf("Expected %d fields but got %d", len(expected), len(fieldNames))
+	}
+
+OUTER:
+	for _, exp := range expected {
+		for _, field := range fieldNames {
+			if exp == field {
+				continue OUTER
+			}
+		}
+		t.Fatalf("Expected field %v wasn't in the actual fields", exp)
+	}
+}
