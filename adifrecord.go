@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -52,10 +53,18 @@ func (r *baseADIFRecord) ToString() string {
 		}
 	}
 	// Handle custom fields
-	for n, v := range r.values {
+	// Pick up custom field names as keys first
+	custom_keys := make([]string, 0, len(r.values))
+	for n := range r.values {
 		if !isStandardADIFField(n) {
-			record.WriteString(serializeField(n, v))
+			custom_keys = append(custom_keys, n)
 		}
+	}
+	// Sort the custom keys
+	sort.Strings(custom_keys)
+	// Print the custom fields with sorted keys
+	for _, k := range custom_keys {
+		record.WriteString(serializeField(k, r.values[k]))
 	}
 	return record.String()
 }
